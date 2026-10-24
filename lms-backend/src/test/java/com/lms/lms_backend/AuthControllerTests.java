@@ -7,6 +7,8 @@ import com.lms.lms_backend.repository.EnrollmentRepository;
 import com.lms.lms_backend.repository.ExaminationRepository;
 import com.lms.lms_backend.repository.QuestionRepository;
 import com.lms.lms_backend.repository.LearningMaterialRepository;
+import com.lms.lms_backend.repository.LearningMaterialProgressRepository;
+import com.lms.lms_backend.service.UserService;
 import com.lms.lms_backend.service.AuthService;
 import com.lms.lms_backend.service.LearningMaterialService;
 import com.lms.lms_backend.model.Course;
@@ -66,6 +68,12 @@ class AuthControllerTests {
 
     @Autowired
     private LearningMaterialRepository learningMaterialRepository;
+
+    @Autowired
+    private LearningMaterialProgressRepository learningMaterialProgressRepository;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -353,6 +361,12 @@ class AuthControllerTests {
                 .andExpect(jsonPath("$.submittedAnswers[1].correct").value(false))
                 .andExpect(jsonPath("$.submittedAnswers[1].selectedOptionText").value("Second wrong"))
                 .andExpect(jsonPath("$.submittedAnswers[1].correctOptionText").value("Second correct"));
+
+        userService.deleteUser(firstStudent.getId());
+        assertThat(userRepository.findById(firstStudent.getId())).isEmpty();
+        assertThat(enrollmentRepository.findByStudentId(firstStudent.getId())).isEmpty();
+        assertThat(learningMaterialProgressRepository.findByStudentId(firstStudent.getId())).isEmpty();
+        assertThat(examinationAttemptRepository.findByStudentId(firstStudent.getId())).isEmpty();
     }
 
     private MockHttpSession signup(String email, String password, jakarta.servlet.http.Cookie csrfCookie,

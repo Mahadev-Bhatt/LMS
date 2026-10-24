@@ -6,6 +6,9 @@ import com.lms.lms_backend.exception.BadRequestException;
 import com.lms.lms_backend.exception.ResourceNotFoundException;
 import com.lms.lms_backend.model.User;
 import com.lms.lms_backend.repository.UserRepository;
+import com.lms.lms_backend.repository.EnrollmentRepository;
+import com.lms.lms_backend.repository.ExaminationAttemptRepository;
+import com.lms.lms_backend.repository.LearningMaterialProgressRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +18,18 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final ExaminationAttemptRepository examinationAttemptRepository;
+    private final LearningMaterialProgressRepository progressRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       EnrollmentRepository enrollmentRepository,
+                       ExaminationAttemptRepository examinationAttemptRepository,
+                       LearningMaterialProgressRepository progressRepository) {
         this.userRepository = userRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.examinationAttemptRepository = examinationAttemptRepository;
+        this.progressRepository = progressRepository;
     }
 
     @Transactional
@@ -59,7 +71,10 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        getUserById(id); // throws 404 if not found
+        getUserById(id);
+        progressRepository.deleteByStudentId(id);
+        enrollmentRepository.deleteByStudentId(id);
+        examinationAttemptRepository.deleteAll(examinationAttemptRepository.findByStudentId(id));
         userRepository.deleteById(id);
     }
 

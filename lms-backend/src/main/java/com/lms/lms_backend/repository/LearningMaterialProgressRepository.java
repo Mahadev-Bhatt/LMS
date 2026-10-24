@@ -12,5 +12,7 @@ public interface LearningMaterialProgressRepository extends JpaRepository<Learni
 
     Optional<LearningMaterialProgress> findByStudentIdAndMaterialId(Long studentId, Long materialId);
 
+    void deleteByStudentId(Long studentId);
+
     void deleteByMaterialId(Long materialId);
 }
