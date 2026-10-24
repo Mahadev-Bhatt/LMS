@@ -34,6 +34,14 @@ export class StudentResultsComponent implements OnInit {
       : 0;
   }
 
+  get latestPassedAttempt(): ExaminationAttempt | null {
+    return this.attempts
+      .filter(attempt => attempt.status === 'SUBMITTED' && attempt.result === 'PASS')
+      .sort((first, second) =>
+        new Date(second.submittedAt ?? second.startedAt ?? 0).getTime()
+        - new Date(first.submittedAt ?? first.startedAt ?? 0).getTime())[0] ?? null;
+  }
+
   review(attempt: ExaminationAttempt): void {
     if (attempt.status === 'SUBMITTED') this.selectedAttempt = attempt;
   }

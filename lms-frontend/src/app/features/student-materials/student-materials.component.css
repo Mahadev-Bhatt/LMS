@@ -1,8 +1,21 @@
 .material-list { display: grid; gap: 16px; }
-.material-card { padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.material-card { padding: 20px; }
+.material-details { width: 100%; }
+.material-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .material-card h2 { margin: 12px 0 4px; font-size: 1.1rem; }
 .material-card p { margin: 4px 0; }
+.completion-badge { margin-left: 8px; }
+.material-preview { margin-top: 20px; }
+.preview-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
+.preview-header h3 { margin: 0; font-size: 1rem; }
+.preview-status { padding: 10px 12px; color: #344054; background: #f3f6fb; border-radius: 6px; }
+.completed-status { color: #167444; background: #edf8f1; }
+.completion-error { color: #b42318; }
+.material-preview iframe { display: block; width: 100%; height: min(70vh, 720px); border: 1px solid var(--border-color, #dce3ea); border-radius: 8px; }
+.preview-fallback { margin-top: 10px !important; font-size: 0.9rem; }
 .toolbar-row .form-control { max-width: 320px; }
 @media (max-width: 640px) {
-  .material-card { align-items: flex-start; flex-direction: column; }
+  .material-heading, .preview-header { align-items: flex-start; flex-direction: column; }
+  .material-heading .btn { width: 100%; }
+  .material-preview iframe { height: 60vh; }
 }

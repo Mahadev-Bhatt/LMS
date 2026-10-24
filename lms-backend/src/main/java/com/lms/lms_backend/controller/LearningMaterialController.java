@@ -2,15 +2,23 @@ package com.lms.lms_backend.controller;
 
 import com.lms.lms_backend.dto.request.MaterialRequest;
 import com.lms.lms_backend.dto.response.MaterialResponse;
+import com.lms.lms_backend.exception.BadRequestException;
 import com.lms.lms_backend.service.LearningMaterialService;
 import com.lms.lms_backend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -29,6 +37,24 @@ public class LearningMaterialController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     public ResponseEntity<MaterialResponse> createMaterial(@Valid @RequestBody MaterialRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(materialService.createMaterial(request));
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    public ResponseEntity<MaterialResponse> uploadPdf(@RequestParam String title,
+                                                      @RequestParam(required = false) String description,
+                                                      @RequestParam Long courseId,
+                                                      @RequestParam(required = false) Long materialId,
+                                                      @RequestPart("file") MultipartFile file) {
+        if (title.isBlank()) {
+            throw new BadRequestException("Title is required");
+        }
+        if (materialId != null) {
+            return ResponseEntity.ok(
+                    materialService.replacePdfMaterial(materialId, title, description, courseId, file));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(materialService.createPdfMaterial(title, description, courseId, file));
     }
 
     @GetMapping
@@ -54,6 +80,32 @@ public class LearningMaterialController {
     public ResponseEntity<List<MaterialResponse>> getMyMaterials(Authentication authentication) {
         Long studentId = userService.getActiveByEmail(authentication.getName()).getId();
         return ResponseEntity.ok(materialService.getMaterialsForStudent(studentId));
+    }
+
+    @GetMapping("/{id}/file")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','STUDENT')")
+    public ResponseEntity<Resource> getPdfFile(@PathVariable Long id, Authentication authentication) {
+        boolean student = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STUDENT"));
+        var pdfPath = student
+                ? materialService.getPdfForStudent(userService.getActiveByEmail(authentication.getName()).getId(), id)
+                : materialService.getUploadedPdf(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline()
+                                .filename("course-material-" + id + ".pdf", StandardCharsets.UTF_8)
+                                .build().toString())
+                .body(new FileSystemResource(pdfPath));
+    }
+
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Void> markMaterialCompleted(@PathVariable Long id, Authentication authentication) {
+        Long studentId = userService.getActiveByEmail(authentication.getName()).getId();
+        materialService.markCompleted(studentId, id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")

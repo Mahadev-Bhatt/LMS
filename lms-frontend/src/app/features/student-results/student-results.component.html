@@ -15,6 +15,32 @@
   <p class="empty-title">No attempts yet</p>
   <p class="empty-sub">Your submitted examination results will appear here.</p>
 </div>
+<section *ngIf="!loading && !error && latestPassedAttempt as passedAttempt"
+  class="pass-celebration" aria-live="polite" aria-label="Examination passed">
+  <div class="celebration-confetti" aria-hidden="true">
+    <span *ngFor="let piece of [1, 2, 3, 4, 5, 6, 7, 8]"></span>
+  </div>
+  <div class="celebration-medal" aria-hidden="true">
+    <svg viewBox="0 0 96 96" role="img">
+      <path d="M29 8h15l6 31-16-9-13 13z" fill="#8b5cf6"/>
+      <path d="M67 8H52l-6 31 16-9 13 13z" fill="#6366f1"/>
+      <circle cx="48" cy="57" r="28" fill="#fbbf24"/>
+      <circle cx="48" cy="57" r="20" fill="#fef3c7"/>
+      <path d="m48 42 4.6 9.3 10.3 1.5-7.4 7.2 1.8 10.2L48 65.4l-9.2 4.8 1.8-10.2-7.4-7.2 10.2-1.5z"
+        fill="#f59e0b"/>
+      <path d="m13 23 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6 1-5.5-4-3.9 5.5-.8z"
+        fill="#fbbf24"/>
+      <path d="m79 14 1.8 3.6 4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.6z"
+        fill="#34d399"/>
+    </svg>
+  </div>
+  <div class="celebration-copy">
+    <p class="celebration-eyebrow">A result worth celebrating</p>
+    <h2>Congratulations, you passed!</h2>
+    <p>You passed <strong>{{ passedAttempt.examinationTitle }}</strong>
+      with {{ passedAttempt.obtainedMarks }} / {{ passedAttempt.totalMarks }} marks.</p>
+  </div>
+</section>
 <div *ngIf="!loading && !error && attempts.length > 0" class="table-wrap">
   <table>
     <thead><tr><th>Examination</th><th>Started</th><th>Status</th><th>Score</th><th>Result</th><th>Review</th></tr></thead>
@@ -27,7 +53,11 @@
           {{ attempt.obtainedMarks }} / {{ attempt.totalMarks }} ({{ percentage(attempt) }}%)
         </td>
         <td *ngIf="attempt.status !== 'SUBMITTED'" class="text-muted">Not submitted</td>
-        <td>{{ attempt.result ?? '—' }}</td>
+        <td>
+          <span *ngIf="attempt.result === 'PASS'" class="badge badge-success">Passed</span>
+          <span *ngIf="attempt.result === 'FAIL'" class="badge badge-error">Not passed</span>
+          <span *ngIf="!attempt.result">—</span>
+        </td>
         <td>
           <button *ngIf="attempt.status === 'SUBMITTED'" class="btn btn-secondary btn-sm"
             (click)="review(attempt)">Review answers</button>

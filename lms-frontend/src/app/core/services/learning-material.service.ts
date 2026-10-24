@@ -18,6 +18,15 @@ export class LearningMaterialService {
     return this.http.get<LearningMaterial[]>(`${this.url}/mine`);
   }
 
+  markCompleted(id: number): Observable<void> {
+    return this.http.post<void>(`${this.url}/${id}/complete`, {});
+  }
+
+  getPdfFile(resourceUrl: string): Observable<Blob> {
+    const fileUrl = new URL(resourceUrl, this.url).toString();
+    return this.http.get(fileUrl, { responseType: 'blob' });
+  }
+
   getByCourse(courseId: number): Observable<LearningMaterial[]> {
     return this.http.get<LearningMaterial[]>(`${this.url}/course/${courseId}`);
   }
@@ -28,6 +37,13 @@ export class LearningMaterialService {
 
   create(m: LearningMaterial): Observable<LearningMaterial> {
     return this.http.post<LearningMaterial>(this.url, m);
+  }
+
+  uploadPdf(formData: FormData, materialId?: number): Observable<LearningMaterial> {
+    if (materialId !== undefined) {
+      formData.append('materialId', String(materialId));
+    }
+    return this.http.post<LearningMaterial>(`${this.url}/upload`, formData);
   }
 
   update(id: number, m: LearningMaterial): Observable<LearningMaterial> {

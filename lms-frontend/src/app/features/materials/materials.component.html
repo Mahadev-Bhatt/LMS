@@ -57,7 +57,7 @@
         </td>
         <td>{{ m.courseTitle }}</td>
         <td>
-          <a [href]="m.resourceUrl" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <a [href]="resourceHref(m)" target="_blank" rel="noopener noreferrer" class="resource-link">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Open
           </a>
@@ -99,9 +99,20 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Resource URL <span class="req">*</span></label>
+          <label class="form-label">Resource URL or PDF attachment</label>
           <input class="form-control" formControlName="resourceUrl" placeholder="https://...">
-          <span *ngIf="f['resourceUrl'].invalid && f['resourceUrl'].touched" class="form-error">Resource URL is required.</span>
+          <span class="form-hint">Or attach a PDF to store and display it inside the course.</span>
+        </div>
+        <div class="form-group" *ngIf="f['materialType'].value === 'DOCUMENT'">
+          <label class="form-label">Attach PDF (up to 20 MB)</label>
+          <input class="form-control" type="file" accept="application/pdf,.pdf" (change)="onPdfSelected($event)">
+          <span *ngIf="editingMaterial" class="form-hint">
+            Choose a file to attach or replace the PDF for this material.
+          </span>
+          <span *ngIf="selectedPdf" class="form-hint">Selected: {{ selectedPdf.name }}
+            <button class="btn btn-ghost btn-sm" type="button" (click)="clearSelectedPdf()">Remove</button>
+          </span>
+          <span *ngIf="fileError" class="form-error">{{ fileError }}</span>
         </div>
         <div class="form-group">
           <label class="form-label">Course <span class="req">*</span></label>

@@ -74,6 +74,7 @@ export interface LearningMaterial {
   courseId: number;
   courseTitle?: string;
   createdAt?: string;
+  completed?: boolean;
 }
 
 // ── Examination ───────────────────────────────────────────────────

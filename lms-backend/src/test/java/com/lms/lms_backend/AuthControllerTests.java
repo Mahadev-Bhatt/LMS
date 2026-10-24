@@ -8,6 +8,7 @@ import com.lms.lms_backend.repository.ExaminationRepository;
 import com.lms.lms_backend.repository.QuestionRepository;
 import com.lms.lms_backend.repository.LearningMaterialRepository;
 import com.lms.lms_backend.service.AuthService;
+import com.lms.lms_backend.service.LearningMaterialService;
 import com.lms.lms_backend.model.Course;
 import com.lms.lms_backend.model.Enrollment;
 import com.lms.lms_backend.model.Examination;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -69,6 +72,9 @@ class AuthControllerTests {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private LearningMaterialService learningMaterialService;
 
     @Test
     @Transactional
@@ -237,10 +243,48 @@ class AuthControllerTests {
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/materials/mine").session(firstSession))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Course guide"));
+                .andExpect(jsonPath("$[0].title").value("Course guide"))
+                .andExpect(jsonPath("$[0].completed").value(false));
         mockMvc.perform(get("/api/materials/mine").session(secondSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
+        mockMvc.perform(post("/api/materials/" + material.getId() + "/complete")
+                        .session(firstSession)
+                        .cookie(csrfCookie)
+                        .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/materials/mine").session(firstSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].completed").value(true));
+        mockMvc.perform(post("/api/materials/" + material.getId() + "/complete")
+                        .session(secondSession)
+                        .cookie(csrfCookie)
+                        .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+                .andExpect(status().isForbidden());
+
+        byte[] pdfContent = "%PDF-1.4\ncourse material\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        var uploadedPdf = learningMaterialService.createPdfMaterial(
+                "Uploaded PDF", "Private course handout", course.getId(),
+                new MockMultipartFile("file", "handout.pdf", "application/pdf", pdfContent));
+        assertThat(uploadedPdf.getResourceUrl()).isEqualTo("/api/materials/" + uploadedPdf.getId() + "/file");
+        byte[] replacementPdf = "%PDF-1.7\nreplacement course material\n"
+                .getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        var replacedPdf = learningMaterialService.replacePdfMaterial(uploadedPdf.getId(),
+                "Uploaded PDF", "Private course handout", course.getId(),
+                new MockMultipartFile("file", "replacement.pdf", "application/pdf", replacementPdf));
+        assertThat(replacedPdf.getId()).isEqualTo(uploadedPdf.getId());
+        mockMvc.perform(get(uploadedPdf.getResourceUrl()).session(firstSession))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(content().bytes(replacementPdf))
+                .andExpect(result -> {
+                    assertThat(result.getResponse().getHeader("X-Frame-Options")).isNull();
+                    assertThat(result.getResponse().getHeader("Content-Security-Policy"))
+                            .contains("frame-ancestors 'self' http://localhost:4200");
+                });
+        mockMvc.perform(get(uploadedPdf.getResourceUrl()).session(secondSession))
+                .andExpect(status().isForbidden());
+        learningMaterialService.deleteMaterial(uploadedPdf.getId());
         mockMvc.perform(get("/api/attempts").session(firstSession))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/examinations/available").session(firstSession))

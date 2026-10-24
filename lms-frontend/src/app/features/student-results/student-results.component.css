@@ -1,4 +1,15 @@
 .page-header { margin-bottom: 20px; }
+.pass-celebration { position: relative; display: flex; align-items: center; gap: 18px; overflow: hidden; margin-bottom: 20px; padding: 20px 26px; border: 1px solid #f6d365; border-radius: 14px; background: linear-gradient(115deg, #fff9df, #fff 60%, #f1fff7); }
+.celebration-medal { z-index: 1; flex: 0 0 76px; animation: medal-pop .7s ease-out both; }
+.celebration-medal svg { display: block; width: 76px; height: 76px; }
+.celebration-copy { z-index: 1; }
+.celebration-eyebrow { margin: 0 0 4px; color: #9a6700; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.celebration-copy h2 { margin: 0 0 6px; color: #175c3a; font-size: 1.35rem; }
+.celebration-copy > p:last-child { margin: 0; color: #475467; }
+.celebration-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.celebration-confetti span { position: absolute; top: -12px; left: 10%; width: 8px; height: 12px; border-radius: 2px; background: #f59e0b; animation: confetti-fall 3s ease-in-out infinite; }
+@keyframes confetti-fall { to { transform: translateY(150px) rotate(300deg); opacity: 0; } }
+@keyframes medal-pop { from { transform: scale(.5) rotate(-15deg); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .answer-review { max-width: 720px; max-height: 85vh; overflow: auto; }
 .review-question { padding: 16px 0; border-bottom: 1px solid var(--border); }
 .review-question:last-child { border-bottom: 0; }
@@ -7,3 +18,11 @@
 .review-question-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .review-correct { border-left: 3px solid var(--success); padding-left: 12px; }
 .review-incorrect { border-left: 3px solid var(--error); padding-left: 12px; }
+@media (max-width: 560px) {
+  .pass-celebration { gap: 12px; padding: 16px; }
+  .celebration-medal, .celebration-medal svg { width: 60px; height: 60px; flex-basis: 60px; }
+  .celebration-copy h2 { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebration-medal, .celebration-confetti span { animation: none; }
+}

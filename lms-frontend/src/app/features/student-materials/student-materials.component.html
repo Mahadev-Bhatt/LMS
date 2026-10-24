@@ -29,14 +29,59 @@
 </div>
 <div *ngIf="!loading && !error && filtered.length > 0" class="material-list">
   <article *ngFor="let material of filtered" class="card material-card">
-    <div>
-      <span class="badge badge-info">{{ material.materialType }}</span>
-      <h2>{{ material.title }}</h2>
-      <p class="text-muted">{{ material.courseTitle }}</p>
-      <p *ngIf="material.description">{{ material.description }}</p>
+    <div class="material-details">
+      <div class="material-heading">
+        <div>
+          <span class="badge badge-info">{{ material.materialType }}</span>
+          <span *ngIf="material.completed" class="badge badge-success completion-badge">Completed</span>
+          <h2>{{ material.title }}</h2>
+          <p class="text-muted">{{ material.courseTitle }}</p>
+          <p *ngIf="material.description">{{ material.description }}</p>
+        </div>
+        <button *ngIf="canPreview(material)" class="btn btn-primary"
+          (click)="showPreview(material)">
+          {{ activeMaterial === material ? 'Preview open' : 'View in course' }}
+        </button>
+        <a *ngIf="!canPreview(material)" class="btn btn-primary"
+          [href]="material.resourceUrl" target="_blank" rel="noopener noreferrer">
+          Open resource
+        </a>
+      </div>
+      <section *ngIf="activeMaterial === material
+          && (activePreviewUrl || previewLoading || previewError)" class="material-preview"
+        [attr.aria-label]="'Preview: ' + material.title">
+        <div class="preview-header">
+          <h3>{{ material.title }}</h3>
+          <button class="btn btn-secondary" type="button" (click)="closePreview()">Close preview</button>
+        </div>
+        <p *ngIf="!material.completed && isPdfMaterial(material)" class="preview-status">
+          Keep this PDF preview open for 2 minutes to complete this material.
+          <span *ngIf="!completionSaving">Time remaining: {{ pdfMinutesRemaining }}m
+            {{ pdfSecondsRemaining % 60 }}s.</span>
+          <span *ngIf="completionSaving">Saving completion...</span>
+        </p>
+        <p *ngIf="!material.completed && !isPdfMaterial(material)" class="preview-status">
+          Watch the full video in this player to complete this material.
+          <span *ngIf="completionSaving">Saving completion...</span>
+        </p>
+        <p *ngIf="material.completed" class="preview-status completed-status">Material completed.</p>
+        <p *ngIf="previewLoading" class="preview-status">Loading PDF from the course...</p>
+        <p *ngIf="previewError" class="completion-error" role="alert">{{ previewError }}</p>
+        <p *ngIf="completionError" class="completion-error" role="alert">
+          Could not save completion.
+          <button class="btn btn-secondary btn-sm" type="button" (click)="retryCompletion(material)">Retry</button>
+        </p>
+        <iframe *ngIf="activePreviewUrl" #previewFrame [src]="activePreviewUrl"
+          [title]="'Preview of ' + material.title"
+          (load)="onPreviewLoaded($event, material)"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+        <p class="preview-fallback">
+          If the resource cannot be displayed here, <a [href]="resourceHref(material)"
+            target="_blank" rel="noopener noreferrer">open it in a new tab</a>.
+          For Google Drive files, ensure sharing is set to anyone with the link.
+        </p>
+      </section>
     </div>
-    <a class="btn btn-primary" [href]="material.resourceUrl" target="_blank" rel="noopener noreferrer">
-      Open resource
-    </a>
   </article>
 </div>

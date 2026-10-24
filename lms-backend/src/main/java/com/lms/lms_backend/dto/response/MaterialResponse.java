@@ -15,8 +15,13 @@ public class MaterialResponse {
     private Long courseId;
     private String courseTitle;
     private LocalDateTime createdAt;
+    private boolean completed;
 
     public static MaterialResponse from(LearningMaterial m) {
+        return from(m, false);
+    }
+
+    public static MaterialResponse from(LearningMaterial m, boolean completed) {
         MaterialResponse r = new MaterialResponse();
         r.id = m.getId();
         r.title = m.getTitle();
@@ -26,6 +31,7 @@ public class MaterialResponse {
         r.courseId = m.getCourse().getId();
         r.courseTitle = m.getCourse().getTitle();
         r.createdAt = m.getCreatedAt();
+        r.completed = completed;
         return r;
     }
 
@@ -37,4 +43,5 @@ public class MaterialResponse {
     public Long getCourseId() { return courseId; }
     public String getCourseTitle() { return courseTitle; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isCompleted() { return completed; }
 }
