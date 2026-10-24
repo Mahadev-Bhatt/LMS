@@ -1,0 +1,79 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">My Examinations</h1>
+    <p class="page-sub">Take available exams for courses you are enrolled in.</p>
+  </div>
+  <button *ngIf="!currentExam" class="btn btn-secondary" (click)="load()">Refresh</button>
+</div>
+
+<div *ngIf="error" class="alert alert-error">{{ error }}</div>
+<div *ngIf="loading" class="loading-overlay"><div class="spinner"></div></div>
+
+<ng-container *ngIf="!loading && currentExam && currentAttempt">
+  <section class="card exam-session">
+    <div class="exam-session-heading">
+      <div>
+        <h2>{{ currentExam.title }}</h2>
+        <p class="text-muted">{{ currentExam.courseTitle }} · {{ currentExam.totalMarks }} marks</p>
+      </div>
+      <div class="exam-clock" [class.exam-clock-low]="remainingSeconds < 60">
+        Time left: {{ formatTime(remainingSeconds) }}
+      </div>
+    </div>
+    <p *ngIf="currentExam.description" class="exam-description">{{ currentExam.description }}</p>
+    <form (ngSubmit)="submit()">
+      <article *ngFor="let question of questions; let index = index" class="exam-question">
+        <h3>{{ index + 1 }}. {{ question.questionText }}</h3>
+        <p class="text-muted">{{ question.marks }} marks</p>
+        <label *ngFor="let option of question.options" class="exam-option">
+          <input type="radio" [name]="'question-' + question.id" [value]="option.id"
+            [ngModel]="answers[question.id]" (ngModelChange)="answers[question.id] = $event"
+            [ngModelOptions]="{ standalone: true }">
+          <span>{{ option.optionText }}</span>
+        </label>
+      </article>
+      <div class="exam-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeExam()" [disabled]="submitting">Exit without saving</button>
+        <button type="submit" class="btn btn-primary" [disabled]="submitting">
+          {{ submitting ? 'Submitting...' : 'Submit examination' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</ng-container>
+
+<ng-container *ngIf="!loading && !currentExam">
+  <div *ngIf="examinations.length === 0" class="empty-state card">
+    <p class="empty-title">No examinations available</p>
+    <p class="empty-sub">
+      Check with your administrator that this signed-in account is enrolled with status ENROLLED
+      in an active course, and that the course has an active exam whose schedule includes the current time.
+    </p>
+  </div>
+  <div *ngIf="examinations.length > 0" class="exam-list">
+    <article *ngFor="let exam of examinations" class="card exam-card">
+      <div>
+        <h2>{{ exam.title }}</h2>
+        <p class="text-muted">{{ exam.courseTitle }} · {{ exam.durationMinutes }} minutes · {{ exam.totalMarks }} marks</p>
+        <p *ngIf="exam.description">{{ exam.description }}</p>
+        <p *ngIf="opensLater(exam)" class="exam-progress">
+          Scheduled to open {{ exam.startTime | date:'medium' }}
+        </p>
+        <p *ngIf="startTimeIsPast(exam) && exam.endTime" class="text-muted">
+          Closes {{ exam.endTime | date:'medium' }}
+        </p>
+        <p *ngIf="attemptFor(exam)?.status === 'IN_PROGRESS'" class="exam-progress">You have an unfinished attempt.</p>
+        <p *ngIf="attemptFor(exam)?.status === 'SUBMITTED'" class="exam-complete">
+          Submitted · Score: {{ attemptFor(exam)?.obtainedMarks }} / {{ exam.totalMarks }}
+          ({{ attemptFor(exam)?.result }})
+        </p>
+      </div>
+      <button class="btn btn-primary"
+        [disabled]="attemptFor(exam)?.status === 'SUBMITTED' || opensLater(exam)" (click)="begin(exam)">
+        {{ attemptFor(exam)?.status === 'IN_PROGRESS' ? 'Resume exam'
+          : attemptFor(exam)?.status === 'SUBMITTED' ? 'Submitted'
+          : opensLater(exam) ? 'Not open yet' : 'Start exam' }}
+      </button>
+    </article>
+  </div>
+</ng-container>

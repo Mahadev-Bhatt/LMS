@@ -1,0 +1,221 @@
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Courses</h1>
+    <p class="page-sub">Create, organize, and manage learning courses.</p>
+  </div>
+  <div class="page-header-actions" *ngIf="!isStudent">
+    <button class="btn btn-primary" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Create Course
+    </button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#EEF2FF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ courses.length }}</span>
+      <span class="stat-label">Total Courses</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#DCFCE7">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ activeCount }}</span>
+      <span class="stat-label">Active</span>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FEE2E2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ inactiveCount }}</span>
+      <span class="stat-label">Inactive</span>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar-row">
+  <div class="search-box">
+    <span class="search-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </span>
+    <input class="form-control" type="text" placeholder="Search courses..."
+           [(ngModel)]="searchTerm" (input)="onSearch()">
+  </div>
+  <select class="form-control" style="width:auto;min-width:140px" [(ngModel)]="statusFilter" (change)="onStatusFilter(statusFilter)">
+    <option value="all">All Status</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+  <button class="btn btn-secondary btn-sm" (click)="clearFilters()">Clear</button>
+  <button class="btn btn-secondary btn-sm" (click)="load()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+    </svg>
+    Refresh
+  </button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- Error -->
+<div *ngIf="error && !loading" class="empty-state card">
+  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <p class="empty-title">Failed to load courses</p>
+  <p class="empty-sub">Check that the backend is running.</p>
+  <button class="btn btn-primary mt-4" (click)="load()">Retry</button>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="!loading && !error && filtered.length === 0" class="empty-state card">
+  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+  </svg>
+  <p class="empty-title">{{ courses.length === 0 ? 'No courses yet' : 'No results found' }}</p>
+  <p class="empty-sub">{{ courses.length === 0 ? 'Create your first course to get started.' : 'Try adjusting your search or filters.' }}</p>
+  <button *ngIf="courses.length === 0 && !isStudent" class="btn btn-primary mt-4" (click)="openCreate()">Create Course</button>
+  <button *ngIf="courses.length > 0" class="btn btn-secondary mt-4" (click)="clearFilters()">Clear Filters</button>
+</div>
+
+<!-- Table -->
+<div *ngIf="!loading && !error && filtered.length > 0" class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th *ngIf="!isStudent">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let course of filtered">
+        <td class="text-muted text-sm">#{{ course.id }}</td>
+        <td><span class="font-medium">{{ course.title }}</span></td>
+        <td class="desc-cell">{{ course.description }}</td>
+        <td>{{ course.durationWeeks }} wk{{ course.durationWeeks !== 1 ? 's' : '' }}</td>
+        <td>
+          <span class="badge" [class.badge-success]="course.active" [class.badge-neutral]="!course.active">
+            {{ course.active ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td class="text-muted text-sm">{{ course.createdAt | date:'MMM d, y' }}</td>
+        <td *ngIf="!isStudent">
+          <div class="action-btns">
+            <button class="btn btn-secondary btn-sm" (click)="openEdit(course)" title="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="confirmDelete(course)" title="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Create / Edit Modal -->
+<div *ngIf="showModal && !isStudent" class="modal-backdrop" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ editingCourse ? 'Edit Course' : 'Create Course' }}</span>
+      <button class="btn btn-ghost btn-icon" (click)="closeModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label" for="title">Title <span class="req">*</span></label>
+          <input id="title" class="form-control" formControlName="title" placeholder="e.g. Introduction to Java">
+          <span *ngIf="f['title'].invalid && f['title'].touched" class="form-error">
+            {{ f['title'].errors?.['required'] ? 'Title is required.' : 'Max 150 characters.' }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">Description <span class="req">*</span></label>
+          <textarea id="description" class="form-control" formControlName="description"
+                    rows="3" placeholder="Brief course description..."></textarea>
+          <span *ngIf="f['description'].invalid && f['description'].touched" class="form-error">Description is required.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="durationWeeks">Duration (weeks) <span class="req">*</span></label>
+          <input id="durationWeeks" class="form-control" type="number" formControlName="durationWeeks" min="1">
+          <span *ngIf="f['durationWeeks'].invalid && f['durationWeeks'].touched" class="form-error">
+            Duration must be at least 1 week.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label toggle-label">
+            <input type="checkbox" formControlName="active" class="toggle-input">
+            <span class="toggle-track"></span>
+            <span>Active</span>
+          </label>
+          <span class="form-hint">Inactive courses cannot be enrolled in.</span>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          <span *ngIf="saving" class="btn-spinner"></span>
+          {{ saving ? 'Saving...' : (editingCourse ? 'Update Course' : 'Create Course') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<app-confirm-dialog
+  *ngIf="showConfirm"
+  title="Delete Course"
+  [message]="'Are you sure you want to delete &quot;' + deletingCourse?.title + '&quot;? This action cannot be undone.'"
+  confirmLabel="Delete"
+  [danger]="true"
+  (confirmed)="doDelete()"
+  (cancelled)="cancelDelete()">
+</app-confirm-dialog>

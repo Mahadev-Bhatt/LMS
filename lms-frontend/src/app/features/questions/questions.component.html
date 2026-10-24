@@ -1,0 +1,128 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Questions</h1>
+    <p class="page-sub">Manage examination questions and answer options.</p>
+  </div>
+  <div class="page-header-actions">
+    <button class="btn btn-primary" [disabled]="!selectedExamId" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Question
+    </button>
+  </div>
+</div>
+
+<!-- Exam selector -->
+<div class="card" style="margin-bottom:24px">
+  <div class="form-group" style="max-width:480px">
+    <label class="form-label">Select Examination</label>
+    <select class="form-control" [(ngModel)]="selectedExamId" (change)="onExamChange()">
+      <option [ngValue]="null">— Choose an examination —</option>
+      <option *ngFor="let e of examinations" [ngValue]="e.id">{{ e.title }} ({{ e.courseTitle }})</option>
+    </select>
+  </div>
+  <div *ngIf="selectedExam" class="exam-meta">
+    <span class="badge badge-info">{{ selectedExam.durationMinutes }} min</span>
+    <span class="badge badge-primary">Total: {{ selectedExam.totalMarks }} marks</span>
+    <span class="badge badge-warning">Used: {{ usedMarks }} marks</span>
+    <span class="badge badge-success">Remaining: {{ selectedExam.totalMarks - usedMarks }} marks</span>
+  </div>
+</div>
+
+<div *ngIf="!selectedExamId" class="empty-state card">
+  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <p class="empty-title">Select an examination</p>
+  <p class="empty-sub">Choose an examination above to view and manage its questions.</p>
+</div>
+
+<div *ngIf="selectedExamId && loadingQuestions" class="loading-overlay"><div class="spinner"></div></div>
+
+<div *ngIf="selectedExamId && !loadingQuestions && questions.length === 0" class="empty-state card">
+  <p class="empty-title">No questions yet</p>
+  <p class="empty-sub">Add the first question to this examination.</p>
+  <button class="btn btn-primary mt-4" (click)="openCreate()">Add Question</button>
+</div>
+
+<div *ngIf="selectedExamId && !loadingQuestions && questions.length > 0" class="questions-list">
+  <div *ngFor="let q of questions; let i = index" class="question-card card">
+    <div class="question-header">
+      <div class="question-num">Q{{ i + 1 }}</div>
+      <div class="question-meta">
+        <span class="badge badge-primary">{{ q.questionType }}</span>
+        <span class="badge badge-info">{{ q.marks }} mark{{ q.marks !== 1 ? 's' : '' }}</span>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" (click)="openEdit(q)">Edit</button>
+        <button class="btn btn-danger btn-sm" (click)="confirmDelete(q)">Delete</button>
+      </div>
+    </div>
+    <p class="question-text">{{ q.questionText }}</p>
+    <div class="options-grid">
+      <div *ngFor="let o of q.options" class="option-item" [class.correct]="o.correct">
+        <span class="option-dot" [class.correct-dot]="o.correct">
+          <svg *ngIf="o.correct" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        {{ o.optionText }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div *ngIf="showModal" class="modal-backdrop" (click)="closeModal()">
+  <div class="modal" style="max-width:640px" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">{{ editingQuestion ? 'Edit Question' : 'Add Question' }}</span>
+      <button class="btn btn-ghost btn-icon" (click)="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Question Text <span class="req">*</span></label>
+          <textarea class="form-control" formControlName="questionText" rows="3" placeholder="Enter the question..."></textarea>
+          <span *ngIf="f['questionText'].invalid && f['questionText'].touched" class="form-error">Question text is required.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Type <span class="req">*</span></label>
+            <select class="form-control" formControlName="questionType">
+              <option value="MCQ">MCQ</option>
+              <option value="TRUE_FALSE">True / False</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marks <span class="req">*</span></label>
+            <input class="form-control" type="number" formControlName="marks" min="1">
+            <span *ngIf="f['marks'].invalid && f['marks'].touched" class="form-error">Min 1 mark.</span>
+          </div>
+        </div>
+
+        <div class="options-section">
+          <div class="options-header">
+            <span class="form-label" style="margin:0">Answer Options <span class="req">*</span></span>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="addOption()">+ Add Option</button>
+          </div>
+          <p class="form-hint">Click the circle to mark the correct answer.</p>
+          <div *ngFor="let og of optionGroups; let i = index" [formGroup]="og" class="option-row">
+            <button type="button" class="correct-btn" [class.selected]="og.value.correct" (click)="setCorrect(i)" title="Mark as correct">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+            <input class="form-control" formControlName="optionText" [placeholder]="'Option ' + (i+1)">
+            <button type="button" class="btn btn-ghost btn-icon" (click)="removeOption(i)" [disabled]="options.length <= 2" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving">{{ saving ? 'Saving...' : (editingQuestion ? 'Update' : 'Add Question') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-confirm-dialog *ngIf="showConfirm" title="Delete Question"
+  message="Delete this question and all its options?"
+  confirmLabel="Delete" [danger]="true"
+  (confirmed)="doDelete()" (cancelled)="cancelDelete()">
+</app-confirm-dialog>

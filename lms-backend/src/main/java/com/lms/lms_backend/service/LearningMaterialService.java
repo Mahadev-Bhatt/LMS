@@ -35,16 +35,29 @@ public class LearningMaterialService {
         return MaterialResponse.from(materialRepository.save(material));
     }
 
+    @Transactional(readOnly = true)
     public List<MaterialResponse> getAllMaterials() {
-        return materialRepository.findAll().stream().map(MaterialResponse::from).toList();
+        return materialRepository.findAllWithCourse().stream().map(MaterialResponse::from).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<MaterialResponse> getMaterialsForStudent(Long studentId) {
+        return materialRepository.findAvailableForStudent(studentId).stream()
+                .map(MaterialResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public MaterialResponse getMaterialById(Long id) {
-        return MaterialResponse.from(findOrThrow(id));
+        return MaterialResponse.from(
+            materialRepository.findByIdWithCourse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with id: " + id))
+        );
     }
 
+    @Transactional(readOnly = true)
     public List<MaterialResponse> getMaterialsByCourse(Long courseId) {
-        courseService.getCourseById(courseId); // verify course exists
+        courseService.getCourseById(courseId);
         return materialRepository.findByCourseId(courseId).stream().map(MaterialResponse::from).toList();
     }
 
@@ -67,7 +80,7 @@ public class LearningMaterialService {
     }
 
     private LearningMaterial findOrThrow(Long id) {
-        return materialRepository.findById(id)
+        return materialRepository.findByIdWithCourse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with id: " + id));
     }
 }

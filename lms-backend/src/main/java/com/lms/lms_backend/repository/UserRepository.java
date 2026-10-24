@@ -12,10 +12,10 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     // Used to check for duplicate emails before saving
-    boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
 
     // Used during update to detect if another user already owns the new email
-    Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
 
     // Filters users by STUDENT or INSTRUCTOR
     List<User> findByUserType(UserType userType);

@@ -1,0 +1,8 @@
+.material-list { display: grid; gap: 16px; }
+.material-card { padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.material-card h2 { margin: 12px 0 4px; font-size: 1.1rem; }
+.material-card p { margin: 4px 0; }
+.toolbar-row .form-control { max-width: 320px; }
+@media (max-width: 640px) {
+  .material-card { align-items: flex-start; flex-direction: column; }
+}

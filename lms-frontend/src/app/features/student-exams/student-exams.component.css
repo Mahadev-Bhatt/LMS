@@ -1,0 +1,34 @@
+.alert-error {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--error);
+  background: var(--error-light, #fee2e2);
+}
+
+.exam-list { display: grid; gap: 16px; }
+.exam-card, .exam-session { padding: 24px; }
+.exam-card, .exam-session-heading, .exam-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.exam-card h2, .exam-session h2 { margin: 0 0 8px; }
+.exam-card p, .exam-session p { margin-top: 4px; }
+.exam-session-heading { margin-bottom: 20px; }
+.exam-clock { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+.exam-clock-low { color: var(--error); }
+.exam-description { margin-bottom: 24px; }
+.exam-question { padding: 20px 0; border-top: 1px solid var(--border); }
+.exam-question h3 { margin: 0; font-size: 1rem; }
+.exam-option { display: flex; align-items: center; gap: 10px; padding: 8px 0; cursor: pointer; }
+.exam-progress { color: var(--primary); font-weight: 600; }
+.exam-complete { color: var(--success); font-weight: 600; }
+.exam-actions { justify-content: flex-end; margin-top: 20px; }
+
+@media (max-width: 640px) {
+  .exam-card, .exam-session-heading { align-items: flex-start; flex-direction: column; }
+  .exam-card { padding: 18px; }
+  .exam-actions { flex-direction: column-reverse; align-items: stretch; }
+}

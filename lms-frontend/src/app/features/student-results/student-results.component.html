@@ -1,0 +1,76 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">My Results</h1>
+    <p class="page-sub">Review your examination attempts and scores.</p>
+  </div>
+  <button class="btn btn-secondary" (click)="load()">Refresh</button>
+</div>
+
+<div *ngIf="loading" class="loading-overlay"><div class="spinner"></div></div>
+<div *ngIf="error && !loading" class="empty-state card">
+  <p class="empty-title">Could not load your results</p>
+  <button class="btn btn-primary mt-4" (click)="load()">Retry</button>
+</div>
+<div *ngIf="!loading && !error && attempts.length === 0" class="empty-state card">
+  <p class="empty-title">No attempts yet</p>
+  <p class="empty-sub">Your submitted examination results will appear here.</p>
+</div>
+<div *ngIf="!loading && !error && attempts.length > 0" class="table-wrap">
+  <table>
+    <thead><tr><th>Examination</th><th>Started</th><th>Status</th><th>Score</th><th>Result</th><th>Review</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let attempt of attempts">
+        <td class="font-medium">{{ attempt.examinationTitle }}</td>
+        <td>{{ attempt.startedAt | date:'MMM d, y' }}</td>
+        <td>{{ attempt.status }}</td>
+        <td *ngIf="attempt.status === 'SUBMITTED'">
+          {{ attempt.obtainedMarks }} / {{ attempt.totalMarks }} ({{ percentage(attempt) }}%)
+        </td>
+        <td *ngIf="attempt.status !== 'SUBMITTED'" class="text-muted">Not submitted</td>
+        <td>{{ attempt.result ?? '—' }}</td>
+        <td>
+          <button *ngIf="attempt.status === 'SUBMITTED'" class="btn btn-secondary btn-sm"
+            (click)="review(attempt)">Review answers</button>
+          <span *ngIf="attempt.status !== 'SUBMITTED'" class="text-muted">Available after submission</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="selectedAttempt" class="modal-backdrop" (click)="closeReview()">
+  <section class="modal answer-review" role="dialog" aria-modal="true"
+    [attr.aria-label]="'Review answers for ' + selectedAttempt.examinationTitle"
+    (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div>
+        <h2 class="modal-title">Answer review</h2>
+        <p class="text-muted">{{ selectedAttempt.examinationTitle }} ·
+          {{ selectedAttempt.obtainedMarks }} / {{ selectedAttempt.totalMarks }} marks
+        </p>
+      </div>
+      <button class="btn btn-ghost btn-icon" (click)="closeReview()" aria-label="Close review">×</button>
+    </header>
+    <div class="modal-body">
+      <article *ngFor="let answer of selectedAttempt.submittedAnswers; let index = index"
+        class="review-question" [class.review-correct]="answer.correct" [class.review-incorrect]="!answer.correct">
+        <div class="review-question-heading">
+          <h3>{{ index + 1 }}. {{ answer.questionText }}</h3>
+          <span class="badge" [class.badge-success]="answer.correct" [class.badge-error]="!answer.correct">
+            {{ answer.correct ? 'Correct' : 'Incorrect' }}
+          </span>
+        </div>
+        <p>Your answer: <strong>{{ answer.selectedOptionText ?? 'Not answered' }}</strong></p>
+        <p *ngIf="!answer.correct">
+          Correct answer: <strong>{{ answer.correctOptionText ?? 'No correct answer configured' }}</strong>
+        </p>
+      </article>
+      <p *ngIf="!selectedAttempt.submittedAnswers?.length" class="text-muted">
+        No per-question answers were recorded for this attempt.
+      </p>
+    </div>
+    <footer class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeReview()">Close</button>
+    </footer>
+  </section>
+</div>

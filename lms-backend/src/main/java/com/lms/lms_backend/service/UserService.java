@@ -2,6 +2,7 @@ package com.lms.lms_backend.service;
 
 import com.lms.lms_backend.enums.UserType;
 import com.lms.lms_backend.exception.DuplicateResourceException;
+import com.lms.lms_backend.exception.BadRequestException;
 import com.lms.lms_backend.exception.ResourceNotFoundException;
 import com.lms.lms_backend.model.User;
 import com.lms.lms_backend.repository.UserRepository;
@@ -21,10 +22,7 @@ public class UserService {
 
     @Transactional
     public User createUser(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new DuplicateResourceException("Email already in use: " + user.getEmail());
-        }
-        return userRepository.save(user);
+        throw new BadRequestException("Users must sign up themselves to create a password-protected account");
     }
 
     public List<User> getAllUsers() {
@@ -36,13 +34,19 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
+    public User getActiveByEmail(String email) {
+        return userRepository.findByEmailIgnoreCase(email)
+                .filter(User::isActive)
+                .orElseThrow(() -> new ResourceNotFoundException("Active user account not found"));
+    }
+
     @Transactional
     public User updateUser(Long id, User updated) {
         User existing = getUserById(id);
 
         // Allow email update only if the new email is not taken by a DIFFERENT user
         if (!existing.getEmail().equalsIgnoreCase(updated.getEmail())
-                && userRepository.existsByEmail(updated.getEmail())) {
+                && userRepository.existsByEmailIgnoreCase(updated.getEmail())) {
             throw new DuplicateResourceException("Email already in use: " + updated.getEmail());
         }
 

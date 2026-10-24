@@ -1,0 +1,9 @@
+.page-header { margin-bottom: 20px; }
+.answer-review { max-width: 720px; max-height: 85vh; overflow: auto; }
+.review-question { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.review-question:last-child { border-bottom: 0; }
+.review-question h3 { margin: 0; font-size: 1rem; }
+.review-question p { margin: 8px 0 0; }
+.review-question-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.review-correct { border-left: 3px solid var(--success); padding-left: 12px; }
+.review-incorrect { border-left: 3px solid var(--error); padding-left: 12px; }

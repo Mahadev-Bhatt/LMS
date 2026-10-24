@@ -1,0 +1,23 @@
+.exam-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+.questions-list { display: flex; flex-direction: column; gap: 16px; }
+
+.question-card { padding: 20px; }
+.question-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.question-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); font-size: .8125rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.question-meta { display: flex; gap: 6px; }
+.question-text { font-size: .9375rem; color: var(--text); margin-bottom: 14px; line-height: 1.6; }
+
+.options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.option-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: .875rem; background: var(--bg); }
+.option-item.correct { border-color: var(--success); background: var(--success-light); color: var(--success); font-weight: 500; }
+.option-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.option-dot.correct-dot { border-color: var(--success); background: var(--success); color: #fff; }
+
+.options-section { display: flex; flex-direction: column; gap: 10px; }
+.options-header { display: flex; align-items: center; justify-content: space-between; }
+.option-row { display: flex; align-items: center; gap: 8px; }
+
+.correct-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; color: transparent; transition: all 150ms ease; }
+.correct-btn.selected { border-color: var(--success); background: var(--success); color: #fff; }
+.correct-btn:hover:not(.selected) { border-color: var(--success); }

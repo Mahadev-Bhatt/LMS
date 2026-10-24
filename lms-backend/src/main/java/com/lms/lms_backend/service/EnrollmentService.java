@@ -59,19 +59,24 @@ public class EnrollmentService {
         return EnrollmentResponse.from(enrollmentRepository.save(enrollment));
     }
 
+    @Transactional(readOnly = true)
     public List<EnrollmentResponse> getAllEnrollments() {
-        return enrollmentRepository.findAll()
+        return enrollmentRepository.findAllWithDetails()
                 .stream()
                 .map(EnrollmentResponse::from)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public EnrollmentResponse getEnrollmentById(Long id) {
-        return EnrollmentResponse.from(findOrThrow(id));
+        return EnrollmentResponse.from(
+            enrollmentRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with id: " + id))
+        );
     }
 
+    @Transactional(readOnly = true)
     public List<EnrollmentResponse> getEnrollmentsByStudent(Long studentId) {
-        // Verify the student exists first
         userService.getUserById(studentId);
         return enrollmentRepository.findByStudentId(studentId)
                 .stream()
@@ -79,8 +84,8 @@ public class EnrollmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<EnrollmentResponse> getEnrollmentsByCourse(Long courseId) {
-        // Verify the course exists first
         courseService.getCourseById(courseId);
         return enrollmentRepository.findByCourseId(courseId)
                 .stream()

@@ -22,6 +22,14 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 
 Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
+## Account roles and student exams
+
+- New accounts are created from the **Sign up** page and start as students. For an existing password-less account, an administrator issues a one-time setup code from **Users**; the user enters that code while signing up with the same email, retaining the role already assigned to that account. Codes expire after 30 minutes.
+- Administrators enroll students in courses from **Enrollments**. Students can take examinations only when they have an active enrollment in the examination's active course.
+- Administrators and instructors create an active examination and add its questions before students can take it.
+- Students use **My Learning Materials** to open resources for actively enrolled courses, **My Examinations** to start or resume an attempt and submit answers, and **My Results** to view only their attempts and scores. Scheduled exams appear with their opening time; students cannot start them early.
+- Administrative pages and student exam data are also restricted by the backend; hiding navigation items is not the only access control.
+
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.

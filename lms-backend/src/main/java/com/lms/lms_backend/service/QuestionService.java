@@ -3,6 +3,7 @@ package com.lms.lms_backend.service;
 import com.lms.lms_backend.dto.request.OptionRequest;
 import com.lms.lms_backend.dto.request.QuestionRequest;
 import com.lms.lms_backend.dto.response.QuestionResponse;
+import com.lms.lms_backend.dto.response.StudentQuestionResponse;
 import com.lms.lms_backend.enums.QuestionType;
 import com.lms.lms_backend.exception.BadRequestException;
 import com.lms.lms_backend.exception.ResourceNotFoundException;
@@ -39,12 +40,22 @@ public class QuestionService {
         return QuestionResponse.from(questionRepository.save(question));
     }
 
+    @Transactional(readOnly = true)
     public List<QuestionResponse> getQuestionsByExamination(Long examId) {
         examinationService.findOrThrow(examId);
         return questionRepository.findByExaminationId(examId)
                 .stream().map(QuestionResponse::from).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<StudentQuestionResponse> getStudentQuestions(Long examId, Long studentId) {
+        examinationService.assertStudentCanAccess(studentId, examId);
+        return questionRepository.findByExaminationId(examId).stream()
+                .map(StudentQuestionResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public QuestionResponse getQuestionById(Long id) {
         return QuestionResponse.from(findOrThrow(id));
     }
@@ -66,7 +77,7 @@ public class QuestionService {
 
     // Package-visible for use in ExaminationAttemptService
     Question findOrThrow(Long id) {
-        return questionRepository.findById(id)
+        return questionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found with id: " + id));
     }
 

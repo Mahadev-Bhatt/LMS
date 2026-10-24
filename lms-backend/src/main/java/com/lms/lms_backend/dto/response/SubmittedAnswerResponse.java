@@ -9,6 +9,8 @@ public class SubmittedAnswerResponse {
     private String questionText;
     private Long selectedOptionId;
     private String selectedOptionText;
+    private String correctOptionText;
+    private boolean correct;
 
     public static SubmittedAnswerResponse from(SubmittedAnswer sa) {
         SubmittedAnswerResponse r = new SubmittedAnswerResponse();
@@ -18,7 +20,13 @@ public class SubmittedAnswerResponse {
         if (sa.getSelectedOption() != null) {
             r.selectedOptionId = sa.getSelectedOption().getId();
             r.selectedOptionText = sa.getSelectedOption().getOptionText();
+            r.correct = sa.getSelectedOption().isCorrect();
         }
+        r.correctOptionText = sa.getQuestion().getOptions().stream()
+                .filter(option -> option.isCorrect())
+                .map(option -> option.getOptionText())
+                .findFirst()
+                .orElse(null);
         return r;
     }
 
@@ -27,4 +35,6 @@ public class SubmittedAnswerResponse {
     public String getQuestionText() { return questionText; }
     public Long getSelectedOptionId() { return selectedOptionId; }
     public String getSelectedOptionText() { return selectedOptionText; }
+    public String getCorrectOptionText() { return correctOptionText; }
+    public boolean isCorrect() { return correct; }
 }

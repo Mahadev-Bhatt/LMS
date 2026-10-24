@@ -1,0 +1,42 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">My Learning Materials</h1>
+    <p class="page-sub">Resources shared for your enrolled courses.</p>
+  </div>
+  <button class="btn btn-secondary" (click)="load()">Refresh</button>
+</div>
+
+<div class="toolbar-row">
+  <input class="form-control" type="search" placeholder="Search materials..."
+    [(ngModel)]="searchTerm" (input)="applyFilter()">
+  <select class="form-control" [(ngModel)]="courseFilter" (change)="applyFilter()">
+    <option value="all">All courses</option>
+    <option *ngFor="let course of courses" [value]="course.id">{{ course.title }}</option>
+  </select>
+</div>
+
+<div *ngIf="loading" class="loading-overlay"><div class="spinner"></div></div>
+<div *ngIf="error && !loading" class="empty-state card">
+  <p class="empty-title">Could not load your learning materials</p>
+  <button class="btn btn-primary mt-4" (click)="load()">Retry</button>
+</div>
+<div *ngIf="!loading && !error && materials.length === 0" class="empty-state card">
+  <p class="empty-title">No learning materials yet</p>
+  <p class="empty-sub">Ask your instructor or administrator to add resources to a course where you are actively enrolled.</p>
+</div>
+<div *ngIf="!loading && !error && materials.length > 0 && filtered.length === 0" class="empty-state card">
+  <p class="empty-title">No materials match your search</p>
+</div>
+<div *ngIf="!loading && !error && filtered.length > 0" class="material-list">
+  <article *ngFor="let material of filtered" class="card material-card">
+    <div>
+      <span class="badge badge-info">{{ material.materialType }}</span>
+      <h2>{{ material.title }}</h2>
+      <p class="text-muted">{{ material.courseTitle }}</p>
+      <p *ngIf="material.description">{{ material.description }}</p>
+    </div>
+    <a class="btn btn-primary" [href]="material.resourceUrl" target="_blank" rel="noopener noreferrer">
+      Open resource
+    </a>
+  </article>
+</div>

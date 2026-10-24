@@ -1,6 +1,7 @@
 package com.lms.lms_backend.model;
 
 import com.lms.lms_backend.enums.UserType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +29,14 @@ public class User {
     @Column(unique = true)
     private String email;
 
+    @Column(length = 60)
+    private String passwordHash;
+
+    @Column(length = 64)
+    private String passwordSetupCodeHash;
+
+    private LocalDateTime passwordSetupCodeExpiresAt;
+
     // @Enumerated(EnumType.STRING) stores "STUDENT" or "INSTRUCTOR" as text
     // instead of 0/1 integers — much more readable in the database.
     @NotNull(message = "User type is required")
@@ -54,6 +63,22 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    @JsonIgnore
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    @JsonIgnore
+    public String getPasswordSetupCodeHash() { return passwordSetupCodeHash; }
+    public void setPasswordSetupCodeHash(String passwordSetupCodeHash) { this.passwordSetupCodeHash = passwordSetupCodeHash; }
+
+    @JsonIgnore
+    public LocalDateTime getPasswordSetupCodeExpiresAt() { return passwordSetupCodeExpiresAt; }
+    public void setPasswordSetupCodeExpiresAt(LocalDateTime passwordSetupCodeExpiresAt) {
+        this.passwordSetupCodeExpiresAt = passwordSetupCodeExpiresAt;
+    }
+
+    public boolean isPasswordSet() { return passwordHash != null; }
 
     public UserType getUserType() { return userType; }
     public void setUserType(UserType userType) { this.userType = userType; }

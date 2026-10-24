@@ -1,0 +1,33 @@
+.pct-badge { font-size: .8125rem; font-weight: 600; }
+.pct-pass { color: var(--success); }
+.pct-fail { color: var(--error); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.detail-item {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.detail-item .label {
+  font-size: .75rem; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em;
+}
+
+.answer-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.answer-row:last-child { border-bottom: none; }
+.answer-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  font-size: .75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}
